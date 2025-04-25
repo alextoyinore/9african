@@ -1,9 +1,45 @@
-POST http://localhost:3030/signup 
+# POST http://localhost:3000/signup 
+# Content-Type: application/json
+
+# {
+#     "fullname": "Alexander Ore",
+#     "email": "aore8030@yahoo.com",
+#     "password": "Bukola1995"
+# }
+
+
+# POST http://localhost:3000/signin 
+# Content-Type: application/json
+
+# {
+#     "email": "aore8030@hot.com",
+#     "password": "Bukola1995"
+# }
+
+# GET http://localhost:3030/get-upload-url 
+
+# ACCESS TOKEN eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MDIwNTFlNzQ2ZWI1ODRhNTZlOWRkMCIsImlhdCI6MTc0NDk2Mjg0Nn0.BU9YMl0t5Oe7Ee_OhC9EnvLNsMzZdGbA_cV7YzCta7o
+
+# POST http://localhost:3000/create-blog 
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MDIwNTFlNzQ2ZWI1ODRhNTZlOWRkMCIsImlhdCI6MTc0NDk2Mjg0Nn0.BU9YMl0t5Oe7Ee_OhC9EnvLNsMzZdGbA_cV7YzCta7o
+
+# {
+#     "title": "New Blog",
+#     "banner": "https://images/1.jpg",
+#     "des": "Just a new blog",
+#     "content": {
+#         "blocks": [1, 2]
+#     },
+#     "tags": ["tag1", "tag2"]
+# }
+
+# GET latest blogs
+POST http://localhost:3000/search-users 
 Content-Type: application/json
 
 {
-    "fullname": "Alexander Ore",
-    "email": "aore8030@gmail.com",
-    "password": "Bukola1995"
+    "query": "alex"
 }
+
 
