@@ -352,7 +352,7 @@ server.post('/create-blog', verifyJWT, (req, res) => {
                 "blogs": blog._id
             }
         })  .then(user => {
-            return res.status(201).json({id: blog.blog_id})
+            return res.status(200).json({id: blog.blog_id})
         }).catch(err => {
             return res.status(500).json({'error': 'An error occured while updating user records with post details'})
         })
@@ -426,6 +426,7 @@ server.get('/get-popular-tags', async (req, res) => {
     }
 });
 
+
 server.post('/search-users', async (req, res) => {
     let { query } = req.body
 
@@ -448,14 +449,19 @@ server.post('/search-users', async (req, res) => {
 
 
 server.post('/search-blogs', async (req, res) => {
-    let { query, topic, page } = req.body
+
+    let { query, author, topic, page, limit, subtract } = req.body
+
+    let maxLimit = limit ? limit : 5
+
     let findQuery;
-    let maxLimit = 5
 
     if(topic) {
-        findQuery = { tags: { $regex: topic, $options: 'i' }, draft: false }
+        findQuery = { tags: { $regex: topic, $options: 'i' }, draft: false, blog_id: { $ne: subtract } }
     } else if (query) {
         findQuery = { title: { $regex: query, $options: 'i' }, draft: false }
+    } else if (author) {
+        findQuery = { author, draft: false }
     }
 
     await Blog.find(findQuery)
@@ -488,15 +494,59 @@ server.post('/topic-blogs-count', (req, res) => {
 
 server.post('/search-blogs-count', (req, res) => {
 
-    let { query } = req.body
+    let { query, author } = req.body
 
-    Blog.countDocuments({ draft: false, tags: query }).
+    let findQuery;
+
+    if (query) {
+        findQuery = { title: { $regex: query, $options: 'i' }, draft: false }
+    } else if (author) {
+        findQuery = { author, draft: false }
+    }
+
+    Blog.countDocuments(findQuery).
     then(count => {
         return res.status(200).json({totalDocs: count})
     })
     .catch(err => {
         return res.status(500).json({error: err.message})
     })
+})
+
+server.post('/get-profile', async (req, res) => {
+    let { username } = req.body
+
+    await User.findOne({'personal_info.username': username})
+    .select('-personal_info.password -google_auth -updatedAt -blogs')
+    .then(user => {
+        return res.status(200).json(user)
+    })
+    .catch(err => {
+        return res.status(500).json({'error': err.message})
+    })
+})
+
+server.post('/get-blog', async (req, res) => {
+    let { blog_id } = req.body
+
+    let incrementVal = 1
+
+    await Blog.findOneAndUpdate({blog_id}, { $inc: {'activity.total_reads': incrementVal}})
+    .populate('author', 'personal_info.fullname personal_info.username personal_info.profile_img personal_info.bio social_links')
+    .select('title des content banner activity publishedAt blog_id tags')
+    .then(blog => {
+
+        User.findOneAndUpdate({'personal_info.username': blog.author.personal_info.username}, {$inc : {'account_info.total_reads': incrementVal}})
+        .catch(err => {
+            return res.status(500).json({'error': err.message})
+        })
+
+        return res.status(200).json({blog})
+    })
+    .catch(err => {
+        return res.status(500).json({'error': err.message})
+    })
+
 })
 
 const PORT = 3000

@@ -35,11 +35,11 @@
 # }
 
 # GET latest blogs
-POST http://localhost:3000/search-users 
+POST http://localhost:3000/get-blog
 Content-Type: application/json
 
 {
-    "query": "alex"
+    "blog_id": "Guava-The-Tropical-Superfruit-You-Should-Be-EatingjSHLvSw67T0iSaf81HswP"
 }
 
 

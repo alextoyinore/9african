@@ -66,11 +66,23 @@ const BlogEditor = () => {
 
     const handleCloudinaryBannerUpload = (e) => {
         const image = e.target.files[0]
+
         if (image) {
 
             // Add toast to show image loading
             const uploadingToast = toast.loading('Uploading...')
 
+            // Check that image size is not greater than 1MB
+
+            const maxSize = 1 * 1024 * 1024; // 1MB in bytes
+
+            if (image.size > maxSize) {
+                toast.dismiss(uploadingToast)
+
+                return toast.error(`Image file size exceeds max size of ${maxSize}MB limit.`);
+            }
+
+            // Upload image
             cloudinaryImageUpload(image)
             .then((url) => {
                 if(url) {
@@ -217,7 +229,7 @@ const BlogEditor = () => {
         <AnimationWrapper>
             <section className='flex flex-wrap lg:flex-nowrap lg:gap-20 w-full'>
 
-                <div className='lg:max-w-[300px] w-full'>
+                <div className='md:max-w-[300px] w-full md:w-[50%] md:pr-8 md:border-r border-grey md:sticky md:top-[50px] md:py-10'>
 
                     <textarea 
                         name="" 

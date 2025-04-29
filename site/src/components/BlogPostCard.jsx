@@ -13,15 +13,17 @@ const BlogPostCard = ({content, author}) => {
         >
             <div className='w-full'>
                 <div className='flex gap-2 items-center mb-7'>
-                    <img src={profile_img} alt={fullname} className='rounded-full w-6 h-6' />
-                    <p className='line-clamp-1'>{fullname} @{username}</p>
+                    <Link to={ '/user/' + username } className='flex gap-2 items-center'>
+                        <img src={profile_img} alt={fullname} className='rounded-full w-6 h-6' />
+                        <p className='line-clamp-1'>{fullname} @{username}</p>
+                    </Link>
                     <p className='line-clamp-1'>{getDay(publishedAt)}</p>
                 </div>
 
                 <Link  to={'/blog/'+id}>
                     <div>
-                        <h1 className='blog-title'>{title}</h1>
-                        <p className='font-gelasio text-xl my-3 leading-7 max-sm:hidden md:max-[1100px]:hidden line-clamp-2'>{des}</p>
+                        <h1 className='blog-title max-md:text-xl'>{title}</h1>
+                        <p className='font-gelasio text-xl max-md:text-lg my-3 leading-7 max-sm:hidden md:max-[1100px]:hidden line-clamp-2'>{des}</p>
                     </div>
                     
                 </Link>
@@ -35,9 +37,10 @@ const BlogPostCard = ({content, author}) => {
                 </div>
             </div>
 
-            <div className='h-28 aspect-square bg-grey'>
+            
+            <Link to={'/blog/'+id} className='h-28 aspect-square bg-grey'>
                 <img src={banner} alt={title} className='w-full h-full aspect-square object-cover' />
-            </div>
+            </Link>
         </div>
     )
 }

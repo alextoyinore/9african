@@ -12,7 +12,7 @@ const Navbar = () => {
     const [searchBoxVisibility, setSearchBoxVisibility] = useState(false)
     const [ userNavPanel, setUserNavPanel ] = useState(false)
 
-    const { userAuth: {token, profile_img} } = useContext(UserContext)
+    const { userAuth: { token, profile_img } } = useContext(UserContext)
     const navigate = useNavigate()
 
     const handleSearch = (e) => {
@@ -28,7 +28,7 @@ const Navbar = () => {
         <nav className='navbar'>
             <Link to='/' className='flex-none h-6'>
                 <img src={logo} alt="" className='hidden lg:block' />
-                <img src={icon} alt="" className='h-8 w-8 lg:hidden' />
+                <img src={icon} alt="" className='h-8 w-15 lg:hidden' />
             </Link>
 
             <div className={'absolute bg-white w-full left-0 top-full mt-0.5 border-b border-grey py-3 px-[5vw] md:border-0 md:block md:relative md:inset-0 md:p-0 md:w-auto md:show ' + (searchBoxVisibility ? 'show' : 'hide')}>
