@@ -4,6 +4,8 @@ import 'dotenv/config'
 import bcrypt from 'bcrypt'
 import User from './Schema/User.js'
 import Blog from './Schema/Blog.js'
+import Notification from './Schema/Notification.js'
+import Comment from './Schema/Comment.js'
 import { nanoid } from 'nanoid'
 import jwt from 'jsonwebtoken'
 import cors from 'cors'
@@ -308,7 +310,7 @@ server.post('/create-blog', verifyJWT, (req, res) => {
     const authorId = req.user
     const characterLimit = 400
 
-    let { title, banner, des, tags, content, draft } = req.body
+    let { title, banner, des, tags, content, draft, id } = req.body
 
     if (!title.length) {
         return res.status(403).json({'error': 'Your post needs a title'})
@@ -334,37 +336,50 @@ server.post('/create-blog', verifyJWT, (req, res) => {
 
     tags = tags.map(tag => tag.toLowerCase())
 
-    const blog_id = title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, '-').trim() + nanoid()
+    let blog_id = id || title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, '-').trim() + nanoid()
 
-    const  blog = new Blog({
-        blog_id, title, des, banner, content, tags, author: authorId, draft: Boolean(draft)
-    })
+    if(id) {
 
-    blog.save()
-    .then(blog => {
-        let incrementVal = draft ? 0 : 1
-
-        User.findOneAndUpdate({_id: authorId}, {
-            $inc: {
-                "account_info.total_posts": incrementVal
-            },
-            $push: {
-                "blogs": blog._id
-            }
-        })  .then(user => {
-            return res.status(200).json({id: blog.blog_id})
-        }).catch(err => {
-            return res.status(500).json({'error': 'An error occured while updating user records with post details'})
+        Blog.findOneAndUpdate({ blog_id }, { title, des, banner, content, tags, draft: draft ? true : false })
+        .then(() => {
+            return res.status(200).json({ id: blog_id })
         })
-    }).catch(err => {
-        return res.status(500).json({'error': err.message})
-    })
+        .catch(err => {
+            return res.status(500).json({'error': err.message})
+        })
+
+    } else {
+
+        const  blog = new Blog({
+            blog_id, title, des, banner, content, tags, author: authorId, draft: Boolean(draft)
+        })
+    
+        blog.save()
+        .then(blog => {
+            let incrementVal = draft ? 0 : 1
+    
+            User.findOneAndUpdate({_id: authorId}, {
+                $inc: {
+                    "account_info.total_posts": incrementVal
+                },
+                $push: {
+                    "blogs": blog._id
+                }
+            })  .then(user => {
+                return res.status(200).json({id: blog.blog_id})
+            }).catch(err => {
+                return res.status(500).json({'error': 'An error occured while updating user records with post details'})
+            })
+        }).catch(err => {
+            return res.status(500).json({'error': err.message})
+        })
+    }
     
 })
 
 
 server.post('/latest-blogs', async (req, res) => {
-    const maxLimit = 5
+    const maxLimit = 20
 
     let { page } = req.body
 
@@ -527,9 +542,9 @@ server.post('/get-profile', async (req, res) => {
 })
 
 server.post('/get-blog', async (req, res) => {
-    let { blog_id } = req.body
+    let { blog_id, draft, mode } = req.body
 
-    let incrementVal = 1
+    let incrementVal = (mode != 'edit') ? 1 : 0
 
     await Blog.findOneAndUpdate({blog_id}, { $inc: {'activity.total_reads': incrementVal}})
     .populate('author', 'personal_info.fullname personal_info.username personal_info.profile_img personal_info.bio social_links')
@@ -541,12 +556,164 @@ server.post('/get-blog', async (req, res) => {
             return res.status(500).json({'error': err.message})
         })
 
-        return res.status(200).json({blog})
+        if(blog.draft && !draft) {
+            return res.status(500).json({'error': 'You cannot retrieve a draft blog'})
+        }
+
+        let fullBlogText = ''
+
+        blog.content[0].blocks.forEach(block => {
+            if (block.type == 'paragraph') {
+                fullBlogText += block.data.text + '\n'
+            }
+        });
+
+        return res.status(200).json({blog, fullBlogText})
     })
     .catch(err => {
         return res.status(500).json({'error': err.message})
     })
 
+})
+
+server.post('/like-blog', verifyJWT, (req, res) => {
+    let user_id = req.user
+
+    let { _id, likedByUser } = req.body
+
+    let incrementVal = !likedByUser ? 1 : -1
+
+    Blog.findOneAndUpdate({ _id }, { $inc: { 'activity.total_likes': incrementVal } })
+    .then(blog => {
+
+        if(!likedByUser) {
+            let like = new Notification({
+                type: 'like',
+                blog: _id,
+                notification_for: blog.author,
+                user: user_id
+            })
+
+            like.save().then(data => {
+                return res.status(200).json({ liked_by_user: true })
+            })
+            .catch(err => {
+                return res.status(500).json({'error': err.message})
+            })
+        } else {
+            Notification.findOneAndDelete({
+                type: 'like',
+                blog: _id,
+                user: user_id
+            }).then(data => {
+                return res.status(200).json({ liked_by_user: false })
+            })
+            .catch(err => {
+                return res.status(500).json({'error': err.message})
+            })
+        }
+
+    })
+    .catch(err => {
+        return res.status(500).json({'error': err.message})
+    })
+})
+
+server.post('/liked-by-user', verifyJWT, (req, res) => {
+
+    let user_id = req.user
+
+    let { _id } = req.body
+
+    Notification.exists({ user: user_id, type: 'like', blog: _id })
+    .then(result => {
+        return res.status(200).json({result})
+    })
+    .catch(err => {
+        return res.status(500).json({'error': err.message})
+    })
+})
+
+
+server.post('/add-comment', verifyJWT, (req, res) => {
+    let user_id = req.user
+
+    let { _id, comment, blog_author, replying_to } = req.body
+
+    if(!comment.length) {
+        return res.status(403).json({error: 'Your comment can\'t be empty'})
+    }
+
+    // creating a comment doc
+
+    let commentObj = {
+        blog_id: _id, blog_author, comment, commented_by: user_id, parent: replying_to ? replying_to : null
+    }
+
+    // if(replying_to) {
+    //     commentObj.parent = replying_to
+    // }
+
+    new Comment(commentObj).save().then(async commentDoc => {
+
+        let { comment, commentedAt, children } = commentDoc
+
+        Blog.findOneAndUpdate({ _id }, { $push: { 'comments': commentDoc._id }, $inc: { 'activity.total_comments': 1, 'activity.total_parent_comments': replying_to ? 0 : 1  }})
+        .then(blog => {
+            console.log('comment saved successfully');
+        })
+
+        let notificationObj = {
+            type: replying_to ? 'reply' : 'comment',
+            blog: _id,
+            notification_for: blog_author,
+            user: user_id,
+            comment: commentDoc._id
+        }
+
+        if(replying_to) {
+            notificationObj.replied_on_comment = replying_to
+
+            await Comment.findOneAndUpdate({ _id: replying_to }, { $push: { children: commentDoc._id } })
+            .then(replyDoc => notificationObj.notification_for = replyDoc.commented_by)
+        }
+
+        new Notification(notificationObj).save().then(notification => console.log('Notification sent'))
+
+        return res.status(200).json({
+            comment, commentedAt, 
+            id: commentDoc._id, user_id, children
+        })
+    })
+})
+
+
+server.post('/get-blog-comments', (req, res) => {
+    let { blog_id, skip } = req.body
+
+    let maxLimit = 5
+
+    Comment.find({ blog_id })
+    .populate({
+        path: 'commented_by',
+        select: 'personal_info.username personal_info.fullname personal_info.profile_img'
+    })
+    .populate({
+        path: 'parent',
+        populate: {
+            path: 'commented_by', // Populate the commented_by field within parent
+            select: 'personal_info.username personal_info.fullname personal_info.profile_img'
+        }
+    })
+    .skip(skip)
+    .limit(maxLimit)
+    .sort({ 'commentedAt': -1 })
+    .then(comment => {
+        return res.status(200).json(comment)        
+    })
+    .catch(err => {
+        return res.status(500).json({error: err.message})
+    })
 })
 
 const PORT = 3000

@@ -27,7 +27,7 @@ const Navbar = () => {
     <>
         <nav className='navbar'>
             <Link to='/' className='flex-none h-6'>
-                <img src={logo} alt="" className='hidden lg:block' />
+                <img src={logo} alt="" className='hidden text-black lg:block' />
                 <img src={icon} alt="" className='h-8 w-15 lg:hidden' />
             </Link>
 

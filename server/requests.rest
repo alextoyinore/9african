@@ -39,7 +39,7 @@ POST http://localhost:3000/get-blog
 Content-Type: application/json
 
 {
-    "blog_id": "Guava-The-Tropical-Superfruit-You-Should-Be-EatingjSHLvSw67T0iSaf81HswP"
+    "blog_id": "Cherries-Small-in-Size-Big-in-Benefitsdws39OZrLGzQ-5Xg_qPxr"
 }
 
 

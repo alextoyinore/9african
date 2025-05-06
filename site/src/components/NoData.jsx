@@ -8,7 +8,7 @@ const NoData = ({message}) => {
 
   return (
     <div className='text-center w-full flex justify-center gap-2 p-4 rounded-full bg-grey/50 mt-4'>
-        <p className='text-dark-grey'>{message} </p>
+        <p className='text-dark-grey'>{message} or </p>
         <span 
             className='text-black underline'
             onClick={refreshPage}

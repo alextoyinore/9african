@@ -7,7 +7,7 @@
 
 @layer components {
     * {
-        @apply m-0 p-0 box-border text-base outline-purple/30 duration-100;
+        @apply m-0 p-0 box-border text-base outline-green/30 duration-100;
     }
 
     html{
@@ -27,7 +27,7 @@
     }
 
     ::selection {
-        @apply bg-purple/30;
+        @apply bg-green/30;
     }
 
     img{
@@ -47,7 +47,7 @@
     }
 
     .btn-dark{
-        @apply whitespace-nowrap bg-black text-white rounded-full py-3 px-6 text-xl capitalize hover:bg-opacity-80;
+        @apply whitespace-nowrap bg-black text-white rounded-full py-3 px-6 text-xl capitalize hover:text-black hover:bg-green/10;
     }
 
     .btn-light{
@@ -95,7 +95,7 @@
     }
 
     #textEditor *, .blog-page-content *{
-        @apply font-gelasio text-xl leading-10 md:text-2xl;
+        @apply font-gelasio text-base leading-9 md:text-[18px];
     }
 
     #textEditor a, .blog-page-content a{

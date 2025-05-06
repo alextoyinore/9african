@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import logo from '../imgs/logo.svg'
 import icon from '../imgs/iconblack.svg'
 import AnimationWrapper from '../common/page-animation'
@@ -20,6 +20,8 @@ const BlogEditor = () => {
 
     const navigate = useNavigate()
 
+    let { blog_id } = useParams()
+
     let {
         blog, 
         blog: {title, banner, content, tags, des}, 
@@ -36,8 +38,8 @@ const BlogEditor = () => {
             setTextEditor(new EditorJS({
                 holder: 'textEditor',
                 tools: Tools,
-                placeholder: 'Paragraph...',
-                data: content
+                placeholder: 'Let\'s write something beautiful ...',
+                data: Array.isArray(content) ? content[0] : content
             }))
         }
     }, [])
@@ -168,7 +170,7 @@ const BlogEditor = () => {
                     title, banner, des, content, tags, draft: true
                 }
 
-                axios.post(import.meta.env.VITE_SERVER_DOMAIN + '/create-blog', blogObject, {
+                axios.post(import.meta.env.VITE_SERVER_DOMAIN + '/create-blog', {...blogObject, id: blog_id}, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -229,7 +231,7 @@ const BlogEditor = () => {
         <AnimationWrapper>
             <section className='flex flex-wrap lg:flex-nowrap lg:gap-20 w-full'>
 
-                <div className='md:max-w-[300px] w-full md:w-[50%] md:pr-8 md:border-r border-grey md:sticky md:top-[50px] md:py-10'>
+                <div className='w-full md:w-[50%] md:pr-8 md:border-r border-grey md:sticky md:top-[50px] md:py-10'>
 
                     <textarea 
                         name="" 

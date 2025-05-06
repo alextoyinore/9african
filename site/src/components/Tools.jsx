@@ -18,8 +18,8 @@ import Warning from '@editorjs/warning'
 import Raw from '@editorjs/raw'
 import { cloudinaryImageUpload } from '../common/cloudinary'
 
-const uploadImageByUrl = (e) => {
-    const link = new Promise((resolve, reject) => {
+const uploadImageByUrl = async (e) => {
+    const link = await new Promise((resolve, reject) => {
         try{
             resolve(e)
         }catch(err) {
@@ -35,8 +35,8 @@ const uploadImageByUrl = (e) => {
     })
 }
 
-const uploadImageByFile = (e) => {
-    return cloudinaryImageUpload(e)
+const uploadImageByFile = async (e) => {
+    return await cloudinaryImageUpload(e)
     .then(url => {
         if(url) {
             return {

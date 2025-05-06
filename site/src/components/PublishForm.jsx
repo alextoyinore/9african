@@ -6,6 +6,7 @@ import Tags from './Tags'
 import axios from 'axios'
 import { UserContext } from '../App'
 import { useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 const PublishForm = () => {
 
@@ -13,6 +14,8 @@ const PublishForm = () => {
     const tagLimit = 15
 
     let { setEditorState, blog: {banner, title, tags, des, content }, blog, setBlog } = useContext(EditorContext)
+
+    let { blog_id } = useParams()
 
     const { userAuth: { token } } = useContext(UserContext)
 
@@ -84,7 +87,7 @@ const PublishForm = () => {
             title, banner, des, content, tags, draft: false
         }
 
-        axios.post(import.meta.env.VITE_SERVER_DOMAIN + '/create-blog', blogObject, {
+        axios.post(import.meta.env.VITE_SERVER_DOMAIN + '/create-blog', { ...blogObject, id: blog_id }, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
